@@ -363,7 +363,7 @@
             } else {
                 const texto = textInput.value.trim();
                 if (!texto) throw new Error('Entrada de texto vacía.');
-                if (texto.length > 200) throw new Error('Supera el límite estricto de 200 caracteres.');
+                if (texto.length > 500) throw new Error('Supera el límite estricto de 500 caracteres.');
                 
                 showAlert('[1/3] Conectando a proxy de descarga remota...', 'process');
                 
