@@ -161,7 +161,7 @@
         // Configuración de la dirección fija de Render
         const BASE_SERVER_URL = 'https://audiodw.onrender.com';
         
-        let modoActual = 'texto'; // 'texto' o 'subir'
+        let modoActual = 'texto'; 
         let nodoReproduccionActivo = null;
         let contextoAudioNativo = null;
         let archivoCargadoBuffer = null;
@@ -205,7 +205,7 @@
             reader.readAsArrayBuffer(file);
         });
 
-        // --- Contador de caracteres para texto ---
+        // --- Contador de caracteres ---
         textInput.addEventListener('input', (e) => {
             const len = e.target.value.length;
             currentChars.textContent = len;
@@ -218,7 +218,7 @@
             }
         });
 
-        // --- Lógica de Selectores Inteligentes (Presets) ---
+        // --- Lógica de Presets ---
         const diccionarioPresets = {
             plano: { bass: 0, treble: 0, volume: 100 },
             locutor: { bass: 15, treble: 4, volume: 120 },
@@ -292,7 +292,6 @@
                 nodoReproduccionActivo = contextoAudioNativo.createBufferSource();
                 nodoReproduccionActivo.buffer = bufferBase;
 
-                // Crear filtros dinámicos basados en la ecualización inteligente
                 const filtroGraves = contextoAudioNativo.createBiquadFilter();
                 filtroGraves.type = "lowshelf";
                 filtroGraves.frequency.value = 200;
@@ -306,7 +305,6 @@
                 const nodoGanancia = contextoAudioNativo.createGain();
                 nodoGanancia.gain.value = parseFloat(sliderVolume.value) / 100;
 
-                // Cadena física: Fuente -> Graves -> Agudos -> Volumen -> Altavoces
                 nodoReproduccionActivo.connect(filtroGraves);
                 filtroGraves.connect(filtroAgudos);
                 filtroAgudos.connect(nodoGanancia);
@@ -336,7 +334,6 @@
                 
                 showAlert('⚙️ Renderizando ecualización a máxima velocidad...', 'process');
 
-                // Crear contexto offline rápido que computa el audio sin reproducirlo sonoramente
                 const offlineCtx = new OfflineAudioContext(
                     bufferBase.numberOfChannels,
                     bufferBase.length,
@@ -366,15 +363,12 @@
 
                 fuenteOffline.start(0);
                 
-                // Audio procesado y masterizado en memoria limpia
                 const bufferRenderizado = await offlineCtx.startRendering();
 
                 showAlert('⚡ Convirtiendo y comprimiendo audio a MP3 real...', 'process');
                 
-                // Compilar a MP3 usando la librería nativa Lamejs
                 const blobMP3 = codificarBufferAMP3(bufferRenderizado);
                 
-                // Disparar descarga directa en el navegador
                 const urlDescarga = window.URL.createObjectURL(blobMP3);
                 const elementoLink = document.createElement('a');
                 elementoLink.href = urlDescarga;
@@ -394,17 +388,15 @@
         // --- Algoritmo de codificación Float32 a Int16 PCM para MP3 ---
         function codificarBufferAMP3(audioBuffer) {
             const canales = audioBuffer.numberOfChannels;
-            const tazaMuestreo = audioBuffer.sampleRate;
+            const tasaMuestreo = audioBuffer.sampleRate;
             
-            // Inicializar el codificador LameJS a un bitrate estándar de 128kbps
-            const encoderMp3 = new lamejs.Mp3Encoder(canales, tazaMuestreo, 128);
+            const encoderMp3 = new lamejs.Mp3Encoder(canales, tasaMuestreo, 128);
             const fragmentosMp3 = [];
             const tamañoBloque = 1152;
 
             if (canales === 1) {
                 const datosFlotantes = audioBuffer.getChannelData(0);
                 const pcmInt16 = new Int16Array(datosFlotantes.length);
-                // Convertir muestras de audio (-1.0 / 1.0) a formato Int16 válido
                 for (let i = 0; i < datosFlotantes.length; i++) {
                     let muestra = Math.max(-1, Math.min(1, datosFlotantes[i]));
                     pcmInt16[i] = muestra < 0 ? muestra * 0x8000 : muestra * 0x7FFF;
@@ -415,7 +407,6 @@
                     if (mp3buf.length > 0) fragmentosMp3.push(mp3buf);
                 }
             } else {
-                // Audio estéreo (Común en archivos subidos por el usuario)
                 const flotantesIzquierda = audioBuffer.getChannelData(0);
                 const flotantesDerecha = audioBuffer.getChannelData(1);
                 const pcmIzquierda = new Int16Array(flotantesIzquierda.length);
@@ -435,13 +426,13 @@
                 }
             }
 
-            const flujoFinal = encoderMp3.flush();
-            if (fluxFinal.length > 0) fragmentosMp3.push(flujoFinal);
+            const flujoFinal = encoderMp3.flush(); // <-- CORREGIDO: Antes decía fluxFinal
+            if (flujoFinal.length > 0) fragmentosMp3.push(flujoFinal);
 
             return new Blob(fragmentosMp3, { type: 'audio/mp3' });
         }
 
-        // --- Verificación/Despertador manual de salud de Render ---
+        // --- Verificación/Despertador manual ---
         btnTestBackend.addEventListener('click', async () => {
             showAlert('Enviando señal de verificación... (Espera hasta 50s si está inactivo)', 'process');
             try {
