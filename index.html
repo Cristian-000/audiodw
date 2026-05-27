@@ -146,7 +146,7 @@
             if (!text) return showAlert('No hay texto para descargar.');
             if (text.length > MAX_CHARS) return showAlert('Límite de 200 caracteres superado.', 'error');
 
-            const url = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${langSelect.value}&q=${encodeURIComponent(text)}`;
+            const url = `https://translate.googleapis.com/translate_tts?client=gtx&ie=UTF-8&tl=${langSelect.value}&q=${encodeURIComponent(text)}`;
             const link = document.createElement('a');
             link.href = url;
             link.download = `Audio_${langSelect.value}_${Date.now()}.mp3`;
