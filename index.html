@@ -17,36 +17,35 @@
                 placeholder="Escribe el texto aquí..."></textarea>
             
             <select id="langSelect" class="w-full px-4 py-3 bg-gray-900 border border-gray-600 rounded-xl outline-none focus:border-blue-500">
-              <option value="es-ES">🇪🇸 Español (España)</option>
-<option value="es-ES">🇪🇸 España (Peninsular)</option>
-        <option value="es-MX">🇲🇽 México (Latinoamérica)</option>
-        <option value="es-US">🇺🇸 EE.UU. (Neutro)</option>
-        <option value="es-AR">🇦🇷 Argentina</option>
-        <option value="es-CL">🇨🇱 Chile</option>
-        <option value="es-CO">🇨🇴 Colombia</option>
-        <option value="es-PE">🇵🇪 Perú</option>
-<option value="en-US">🇺🇸 EE.UU. (General)</option>
-        <option value="en-GB">🇬🇧 Reino Unido (Británico)</option>
-        <option value="en-AU">🇦🇺 Australia</option>
-        <option value="en-CA">🇨🇦 Canadá</option>
-        <option value="en-IN">🇮🇳 India</option>
-        <option value="en-IE">🇮🇪 Irlanda</option>
-        <option value="en-NZ">🇳🇿 Nueva Zelanda</option>
-        <option value="en-ZA">🇿🇦 Sudáfrica</option>
-<option value="pt-BR">🇧🇷 Portugués (Brasil)</option>
-<option value="pt-PT">🇵🇹 Portugués (Portugal)</option>
-<option value="fr-FR">🇫🇷 Francés (Francia)</option>
-<option value="it-IT">🇮🇹 Italiano (Italia)</option>
-<option value="de-DE">🇩🇪 Alemán (Alemania)</option>
-<option value="ja-JP">🇯🇵 Japonés (Japón)</option>
-<option value="ko-KR">🇰🇷 Coreano (Corea)</option>
-<option value="zh-CN">🇨🇳 Chino (Mandarín)</option>
-<option value="ru-RU">🇷🇺 Ruso (Rusia)</option>
+                <optgroup label="Español" class="bg-gray-800">
+                    <option value="es-ES">🇪🇸 España (Peninsular)</option>
+                    <option value="es-MX">🇲🇽 México (Latinoamérica)</option>
+                    <option value="es-US">🇺🇸 EE.UU. (Neutro)</option>
+                    <option value="es-AR">🇦🇷 Argentina</option>
+                    <option value="es-CL">🇨🇱 Chile</option>
+                    <option value="es-CO">🇨🇴 Colombia</option>
+                    <option value="es-PE">🇵🇪 Perú</option>
+                </optgroup>
+                <optgroup label="Inglés" class="bg-gray-800">
+                    <option value="en-US">🇺🇸 EE.UU. (General)</option>
+                    <option value="en-GB">🇬🇧 Reino Unido (Británico)</option>
+                    <option value="en-AU">🇦🇺 Australia</option>
+                    <option value="en-CA">🇨🇦 Canadá</option>
+                    <option value="en-IN">🇮🇳 India</option>
+                </optgroup>
             </select>
 
-            <button id="btnDownload" 
-                class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all">
-                Descargar MP3
+            <div class="grid grid-cols-2 gap-2">
+                <button id="btnPlay" class="bg-green-700 hover:bg-green-600 text-white font-bold py-3 rounded-xl transition-all">
+                    🔊 Probar Voz
+                </button>
+                <button id="btnDownload" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all">
+                    ⬇️ Descargar MP3
+                </button>
+            </div>
+
+            <button id="btnTestBackend" class="w-full bg-purple-700 hover:bg-purple-600 text-white text-sm py-2 rounded-xl transition-all">
+                🔄 Verificar/Despertar Servidor
             </button>
         </div>
 
@@ -57,11 +56,22 @@
         const textInput = document.getElementById('textInput');
         const langSelect = document.getElementById('langSelect');
         const btnDownload = document.getElementById('btnDownload');
+        const btnPlay = document.getElementById('btnPlay');
+        const btnTestBackend = document.getElementById('btnTestBackend');
         const alertBox = document.getElementById('alertBox');
         
-        // REEMPLAZA ESTA URL CON LA URL DE TU SERVICIO EN RENDER
         const BASE_SERVER_URL = 'https://audiodw.onrender.com';
 
+        // 1. PROBAR VOZ (Nativa)
+        btnPlay.addEventListener('click', () => {
+            const text = textInput.value.trim();
+            if (!text) return showAlert('Escribe algo primero.', 'bg-red-900/50 border-red-800 text-red-300');
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            window.speechSynthesis.speak(utterance);
+        });
+
+        // 2. DESCARGAR MP3 (Proxy)
         btnDownload.addEventListener('click', async () => {
             const texto = textInput.value.trim();
             if (!texto) return showAlert('Por favor, escribe algo.', 'bg-red-900/50 border-red-800 text-red-300');
@@ -76,7 +86,7 @@
                     body: JSON.stringify({ texto, idioma: langSelect.value })
                 });
 
-                if (!response.ok) throw new Error('Error al conectar con el servidor');
+                if (!response.ok) throw new Error('Servidor durmiendo');
 
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
@@ -86,13 +96,25 @@
                 document.body.appendChild(a);
                 a.click();
                 a.remove();
-                
                 showAlert('¡Descarga completada!', 'bg-green-900/50 border-green-800 text-green-300');
             } catch (err) {
-                showAlert('Error: El servidor podría estar dormido.', 'bg-red-900/50 border-red-800 text-red-300');
+                showAlert('El servidor está despertando, espera 30 seg.', 'bg-yellow-900/50 border-yellow-800 text-yellow-300');
             } finally {
                 btnDownload.textContent = 'Descargar MP3';
                 btnDownload.disabled = false;
+            }
+        });
+
+        // 3. WAKE SERVER
+        btnTestBackend.addEventListener('click', async () => {
+            alertBox.textContent = "Despertando servidor...";
+            alertBox.className = "mt-4 p-3 rounded-lg text-center text-sm border bg-purple-900/50 border-purple-800 text-purple-300";
+            alertBox.classList.remove('hidden');
+            try {
+                await fetch(`${BASE_SERVER_URL}/api/estado`);
+                showAlert('¡Servidor activo!', 'bg-green-900/50 border-green-800 text-green-300');
+            } catch {
+                showAlert('Error: Revisa la conexión.', 'bg-red-900/50 border-red-800 text-red-300');
             }
         });
 
