@@ -3,210 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador MP3 Real</title>
+    <title>Generador de Audio Profesional</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center p-4 font-sans">
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
 
-    <div class="bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-700">
-        <div class="flex items-center justify-center gap-3 mb-6">
-            <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
-            <h1 class="text-3xl font-bold text-blue-400">Generador MP3</h1>
-        </div>
+    <div class="bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-lg border border-gray-700">
+        <h1 class="text-2xl font-bold text-blue-400 mb-6 text-center">Generador de Audio</h1>
+        
+        <div class="space-y-4">
+            <textarea id="textInput" rows="4" 
+                class="w-full px-4 py-3 bg-gray-900 border border-gray-600 rounded-xl focus:border-blue-500 outline-none transition-colors" 
+                placeholder="Escribe el texto aquí..."></textarea>
+            
+            <select id="langSelect" class="w-full px-4 py-3 bg-gray-900 border border-gray-600 rounded-xl outline-none focus:border-blue-500">
+              <option value="es-ES">🇪🇸 Español (España)</option>
+<option value="es-ES">🇪🇸 España (Peninsular)</option>
+        <option value="es-MX">🇲🇽 México (Latinoamérica)</option>
+        <option value="es-US">🇺🇸 EE.UU. (Neutro)</option>
+        <option value="es-AR">🇦🇷 Argentina</option>
+        <option value="es-CL">🇨🇱 Chile</option>
+        <option value="es-CO">🇨🇴 Colombia</option>
+        <option value="es-PE">🇵🇪 Perú</option>
+<option value="en-US">🇺🇸 EE.UU. (General)</option>
+        <option value="en-GB">🇬🇧 Reino Unido (Británico)</option>
+        <option value="en-AU">🇦🇺 Australia</option>
+        <option value="en-CA">🇨🇦 Canadá</option>
+        <option value="en-IN">🇮🇳 India</option>
+        <option value="en-IE">🇮🇪 Irlanda</option>
+        <option value="en-NZ">🇳🇿 Nueva Zelanda</option>
+        <option value="en-ZA">🇿🇦 Sudáfrica</option>
+<option value="pt-BR">🇧🇷 Portugués (Brasil)</option>
+<option value="pt-PT">🇵🇹 Portugués (Portugal)</option>
+<option value="fr-FR">🇫🇷 Francés (Francia)</option>
+<option value="it-IT">🇮🇹 Italiano (Italia)</option>
+<option value="de-DE">🇩🇪 Alemán (Alemania)</option>
+<option value="ja-JP">🇯🇵 Japonés (Japón)</option>
+<option value="ko-KR">🇰🇷 Coreano (Corea)</option>
+<option value="zh-CN">🇨🇳 Chino (Mandarín)</option>
+<option value="ru-RU">🇷🇺 Ruso (Rusia)</option>
+            </select>
 
-        <div class="space-y-6">
-            <div class="relative">
-                <label class="block text-sm font-semibold mb-2 text-gray-300">¿Qué quieres que diga?</label>
-                <textarea id="textInput" rows="5" 
-                    class="w-full px-4 py-3 bg-gray-900 border border-gray-600 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-white placeholder-gray-500 resize-none transition-colors" 
-                    placeholder="Escribe tu texto aquí..."></textarea>
-                <div class="absolute bottom-3 right-4 text-xs font-mono" id="charCount">
-                    <span id="currentChars" class="text-gray-400">0</span>
-                    <span class="text-gray-500">/ 200</span>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="bg-gray-900/50 p-4 rounded-xl border border-gray-700">
-                    <label class="block text-sm font-semibold mb-2 text-blue-300">Idioma del MP3</label>
-                    <select id="langSelect" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-sm text-gray-200">
-                        <option value="es">Español</option>
-                        <option value="en">Inglés</option>
-                        <option value="pt">Portugués</option>
-                        <option value="fr">Francés</option>
-                        <option value="it">Italiano</option>
-                    </select>
-                </div>
-
-                <div class="bg-gray-900/50 p-4 rounded-xl border border-gray-700">
-                    <label class="block text-sm font-semibold mb-2 text-green-300">Voz de Prueba Local</label>
-                    <select id="voiceSelect" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-green-500 text-sm text-gray-200">
-                        <option value="">Cargando voces...</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="flex flex-col sm:flex-row gap-3 pt-4">
-                <button id="btnPlay" class="flex-1 bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-xl transition-all">
-                    Probar Texto (Local)
-                </button>
-                <button id="btnStop" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-4 rounded-xl transition-all">
-                    ⏹
-                </button>
-                <button id="btnDownload" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-xl transition-all">
-                    Descargar MP3 Real
-                </button>
-            </div>
-
-            <div id="alertBox" class="hidden rounded-lg p-4 text-sm font-medium text-center border"></div>
-        </div>
-
-        <hr class="my-8 border-gray-700">
-
-        <div class="bg-gray-900/80 p-5 rounded-xl border border-gray-700">
-            <h2 class="text-lg font-bold text-purple-400 mb-3 text-center">Estado del Servidor Backend</h2>
-            <button id="btnTestBackend" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-purple-900/20 active:scale-95">
-                Verificar conexión
+            <button id="btnDownload" 
+                class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all">
+                Descargar MP3
             </button>
-            <p id="backendResponse" class="text-sm text-green-400 mt-4 hidden text-center bg-gray-800 py-2 rounded-lg border border-green-800"></p>
         </div>
+
+        <div id="alertBox" class="hidden mt-4 p-3 rounded-lg text-center text-sm border"></div>
     </div>
 
     <script>
         const textInput = document.getElementById('textInput');
-        const voiceSelect = document.getElementById('voiceSelect');
         const langSelect = document.getElementById('langSelect');
-        const btnPlay = document.getElementById('btnPlay');
-        const btnStop = document.getElementById('btnStop');
         const btnDownload = document.getElementById('btnDownload');
-        const currentChars = document.getElementById('currentChars');
         const alertBox = document.getElementById('alertBox');
         
-        let synthVoices = [];
-        const MAX_CHARS = 200;
-
-        // URL fija de tu Web Service en Render
+        // REEMPLAZA ESTA URL CON LA URL DE TU SERVICIO EN RENDER
         const BASE_SERVER_URL = 'https://audiodw.onrender.com';
 
-        // Contador
-        textInput.addEventListener('input', (e) => {
-            const length = e.target.value.length;
-            currentChars.textContent = length;
-            if (length > MAX_CHARS) {
-                currentChars.classList.replace('text-gray-400', 'text-red-400');
-                textInput.classList.replace('border-gray-600', 'border-red-500');
-            } else {
-                currentChars.classList.replace('text-red-400', 'text-gray-400');
-                textInput.classList.replace('border-red-500', 'border-gray-600');
-            }
-        });
-
-        function loadVoices() {
-            synthVoices = window.speechSynthesis.getVoices();
-            if (synthVoices.length > 0) {
-                voiceSelect.innerHTML = '';
-                synthVoices.sort((a, b) => a.name.localeCompare(b.name));
-                synthVoices.forEach((voice, index) => {
-                    const option = document.createElement('option');
-                    option.value = index;
-                    option.textContent = `${voice.name} [${voice.lang}]`;
-                    if (voice.lang.startsWith('es') && voice.default) option.selected = true;
-                    voiceSelect.appendChild(option);
-                });
-            }
-        }
-        window.speechSynthesis.onvoiceschanged = loadVoices;
-        setTimeout(loadVoices, 500);
-
-        function showAlert(msg, type = 'error') {
-            alertBox.textContent = msg;
-            alertBox.className = `rounded-lg p-4 text-sm font-medium text-center border mt-4 ${type === 'error' ? 'bg-red-900/50 text-red-300 border-red-800' : 'bg-green-900/50 text-green-300 border-green-800'}`;
-            alertBox.classList.remove('hidden');
-            setTimeout(() => alertBox.classList.add('hidden'), 5000);
-        }
-
-        // Test Local
-        btnPlay.addEventListener('click', () => {
-            const text = textInput.value.trim();
-            if (!text) return showAlert('Escribe un texto.');
-            window.speechSynthesis.cancel(); 
-            const utterance = new SpeechSynthesisUtterance(text);
-            if (voiceSelect.value && synthVoices[voiceSelect.value]) {
-                utterance.voice = synthVoices[voiceSelect.value];
-            }
-            window.speechSynthesis.speak(utterance);
-        });
-
-        btnStop.addEventListener('click', () => window.speechSynthesis.cancel());
-
-        // ==========================================
-        // DESCARGA MP3 PROXYMEDIANTE EL BACKEND
-        // ==========================================
         btnDownload.addEventListener('click', async () => {
-            const text = textInput.value.trim();
-            if (!text) return showAlert('No hay texto para descargar.', 'error');
-            if (text.length > MAX_CHARS) return showAlert(`Máximo ${MAX_CHARS} caracteres.`, 'error');
+            const texto = textInput.value.trim();
+            if (!texto) return showAlert('Por favor, escribe algo.', 'bg-red-900/50 border-red-800 text-red-300');
 
-            const originalText = btnDownload.innerHTML;
-            btnDownload.innerHTML = '⚡ Procesando en servidor...';
+            btnDownload.textContent = 'Procesando...';
             btnDownload.disabled = true;
 
             try {
-                // Golpeamos a TU propio servidor en Render pasando texto e idioma
                 const response = await fetch(`${BASE_SERVER_URL}/api/generar-mp3`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        texto: text,
-                        idioma: langSelect.value 
-                    })
+                    body: JSON.stringify({ texto, idioma: langSelect.value })
                 });
 
-                if (!response.ok) throw new Error('El servidor falló al responder.');
+                if (!response.ok) throw new Error('Error al conectar con el servidor');
 
-                // El servidor nos devuelve el archivo binario directo
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `audio_${langSelect.value}_${Date.now()}.mp3`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
                 
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `audio_${langSelect.value}_${Date.now()}.mp3`;
-                document.body.appendChild(link);
-                link.click();
-                
-                document.body.removeChild(link);
-                window.URL.revokeObjectURL(url);
-                showAlert('¡MP3 descargado exitosamente!', 'success');
-
-            } catch (error) {
-                console.error(error);
-                showAlert('Error descargando el MP3. Comprobá que el backend esté despierto.', 'error');
+                showAlert('¡Descarga completada!', 'bg-green-900/50 border-green-800 text-green-300');
+            } catch (err) {
+                showAlert('Error: El servidor podría estar dormido.', 'bg-red-900/50 border-red-800 text-red-300');
             } finally {
-                btnDownload.innerHTML = originalText;
+                btnDownload.textContent = 'Descargar MP3';
                 btnDownload.disabled = false;
             }
         });
 
-        // Test de salud del servidor
-        const btnTestBackend = document.getElementById('btnTestBackend');
-        const backendResponse = document.getElementById('backendResponse');
-
-        btnTestBackend.addEventListener('click', async () => {
-            backendResponse.textContent = "Conectando al servidor... (Puede tardar 50s si estaba dormido)";
-            backendResponse.className = "text-sm text-yellow-400 mt-4 text-center bg-gray-800 py-2 rounded-lg border border-yellow-800 block";
-
-            try {
-                const response = await fetch(`${BASE_SERVER_URL}/api/estado`);
-                if (!response.ok) throw new Error('Error de respuesta');
-                const data = await response.json();
-                
-                backendResponse.textContent = `✅ ${data.mensaje}`;
-                backendResponse.className = "text-sm text-green-400 mt-4 text-center bg-gray-800 py-2 rounded-lg border border-green-800 block";
-            } catch (error) {
-                backendResponse.textContent = "❌ No se pudo conectar al Web Service de Render.";
-                backendResponse.className = "text-sm text-red-400 mt-4 text-center bg-gray-800 py-2 rounded-lg border border-red-800 block";
-            }
-        });
+        function showAlert(msg, style) {
+            alertBox.textContent = msg;
+            alertBox.className = `mt-4 p-3 rounded-lg text-center text-sm border ${style}`;
+            alertBox.classList.remove('hidden');
+            setTimeout(() => alertBox.classList.add('hidden'), 4000);
+        }
     </script>
 </body>
 </html>
