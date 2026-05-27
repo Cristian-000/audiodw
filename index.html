@@ -283,7 +283,7 @@
             const len = e.target.value.length;
             currentChars.textContent = len;
             guardarEstadoEnStorage();
-            if (len > 200) {
+            if (len > 500) {
                 currentChars.className = "text-red-500";
                 textInput.classList.replace('border-gray-700', 'border-red-500');
             } else {
