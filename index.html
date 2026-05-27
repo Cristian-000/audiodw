@@ -15,7 +15,7 @@
                 <span class="w-3 h-3 bg-blue-500 inline-block"></span>
                 <h1 class="text-md font-bold uppercase tracking-wider text-blue-400">Audio Studio Workspace</h1>
             </div>
-            <span class="text-[10px] text-gray-500">v2.1.0-PRO</span>
+            <span class="text-[10px] text-gray-500">v2.3.0-PRO (Cached)</span>
         </div>
 
         <div class="flex border border-gray-700 p-0.5 mb-4 bg-gray-950">
@@ -32,11 +32,10 @@
                 <div class="relative">
                     <label class="block text-[11px] uppercase tracking-wider text-gray-400 mb-1">Módulo de Entrada de Texto:</label>
                     <textarea id="textInput" rows="3" 
-    class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-none focus:outline-none focus:border-blue-500 text-xs text-white placeholder-gray-600 resize-none transition-colors" 
-    placeholder="Ingresar caracteres a procesar..."></textarea>
-
+                        class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-none focus:outline-none focus:border-blue-500 text-xs text-white placeholder-gray-600 resize-none transition-colors" 
+                        placeholder="Ingresar caracteres a procesar..."></textarea>
                     <div class="absolute bottom-2 right-3 text-[10px] font-mono text-gray-600">
-                        <span id="currentChars">0</span>/200
+                        <span id="currentChars">0</span>/1000
                     </div>
                 </div>
 
@@ -200,7 +199,11 @@
         let contextoAudioNativo = null;
         let archivoCargadoBuffer = null;
 
-        // --- Persistencia con LocalStorage ---
+        // --- SISTEMA DE CACHÉ EN RAM ---
+        let textoCacheado = '';
+        let idiomaCacheado = '';
+        let bufferCacheado = null;
+
         function guardarEstadoEnStorage() {
             const estado = {
                 texto: textInput.value,
@@ -237,7 +240,6 @@
             } catch(e) { console.error("Error leyendo LocalStorage", e); }
         }
 
-        // --- Eventos de Cambio de Pestañas ---
         tabText.addEventListener('click', () => {
             modoActual = 'texto';
             tabText.className = "flex-1 py-1.5 text-xs font-bold uppercase rounded-none bg-blue-600 text-white transition-all";
@@ -256,7 +258,6 @@
             detenerAudioNativo();
         });
 
-        // --- Carga de archivos binarios locales ---
         fileInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -279,11 +280,12 @@
             reader.readAsArrayBuffer(file);
         });
 
+        // VALIDACIÓN DE LÍMITE DE 1000 CARACTERES VISUAL
         textInput.addEventListener('input', (e) => {
             const len = e.target.value.length;
             currentChars.textContent = len;
             guardarEstadoEnStorage();
-            if (len > 500) {
+            if (len > 1000) {
                 currentChars.className = "text-red-500";
                 textInput.classList.replace('border-gray-700', 'border-red-500');
             } else {
@@ -292,7 +294,6 @@
             }
         });
 
-        // --- Configuración de Presets de Ecualización ---
         const diccionarioPresets = {
             plano: { bass: 0, treble: 0, speed: 1.0, echo: 0, feedback: 0, volume: 100 },
             locutor: { bass: 14, treble: 3, speed: 1.0, echo: 0, feedback: 0, volume: 115 },
@@ -362,26 +363,38 @@
                 return archivoCargadoBuffer;
             } else {
                 const texto = textInput.value.trim();
-                if (!texto) throw new Error('Entrada de texto vacía.');
-                if (texto.length > 500) throw new Error('Supera el límite estricto de 500 caracteres.');
+                const idioma = langSelect.value;
                 
+                if (!texto) throw new Error('Entrada de texto vacía.');
+                // LÍMITE DE 1000 CARACTERES EN LA VALIDACIÓN INTERNA
+                if (texto.length > 1000) throw new Error('Supera el límite estricto de 1000 caracteres por seguridad.');
+                
+                if (bufferCacheado && texto === textoCacheado && idioma === idiomaCacheado) {
+                    showAlert('Utilizando pista base en caché RAM (0 peticiones a red)...', 'success');
+                    return bufferCacheado;
+                }
+
                 showAlert('[1/3] Conectando a proxy de descarga remota...', 'process');
                 
                 const response = await fetch(`${BASE_SERVER_URL}/api/generar-mp3`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ texto, idioma: langSelect.value })
+                    body: JSON.stringify({ texto, idioma })
                 });
 
                 if (!response.ok) throw new Error('El canal del servidor rechazó la transferencia o sigue inactivo.');
 
                 const arrayBuffer = await response.arrayBuffer();
                 if (!contextoAudioNativo) contextoAudioNativo = new (window.AudioContext || window.webkitAudioContext)();
-                return await contextoAudioNativo.decodeAudioData(arrayBuffer);
+                
+                bufferCacheado = await contextoAudioNativo.decodeAudioData(arrayBuffer);
+                textoCacheado = texto;
+                idiomaCacheado = idioma;
+
+                return bufferCacheado;
             }
         }
 
-        // --- Grafo de efectos con Compresor Integrado contra Saturación ---
         function construirGrafoEfectos(ctx, sourceNode, bassG, trebG, speedG, echoT, feedG, volG) {
             sourceNode.playbackRate.value = parseFloat(speedG);
 
@@ -429,7 +442,6 @@
             return nodoGanancia;
         }
 
-        // --- Ejecución del Preview Activo ---
         btnPlay.addEventListener('click', async () => {
             try {
                 detenerAudioNativo();
@@ -464,7 +476,6 @@
         }
         btnStop.addEventListener('click', detenerAudioNativo);
 
-        // --- Renderizado Offline y Codificación MP3 ---
         btnDownload.addEventListener('click', async () => {
             try {
                 detenerAudioNativo();
@@ -518,7 +529,6 @@
             }
         });
 
-        // --- Algoritmo de Conversión PCM a MP3 de Alta Fidelidad ---
         function codificarBufferAMP3(audioBuffer) {
             const canales = audioBuffer.numberOfChannels;
             const tazaMuestreo = audioBuffer.sampleRate;
@@ -565,7 +575,6 @@
             return new Blob(fragmentosMp3, { type: 'audio/mp3' });
         }
 
-        // --- Ping de comprobación manual ---
         btnTestBackend.addEventListener('click', async () => {
             showAlert('Enviando ping de diagnóstico técnico a la instancia...', 'process');
             try {
@@ -578,7 +587,6 @@
             }
         });
 
-        // Inicialización automática
         cargarEstadoDesdeStorage();
     </script>
 </body>
