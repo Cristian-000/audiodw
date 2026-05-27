@@ -3,127 +3,456 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Audio Profesional</title>
+    <title>Estudio de Ecualización MP3 Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.all.min.js"></script>
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4 font-sans">
 
-    <div class="bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-lg border border-gray-700">
-        <h1 class="text-2xl font-bold text-blue-400 mb-6 text-center">Generador de Audio</h1>
-        
-        <div class="space-y-4">
-            <textarea id="textInput" rows="4" 
-                class="w-full px-4 py-3 bg-gray-900 border border-gray-600 rounded-xl focus:border-blue-500 outline-none transition-colors" 
-                placeholder="Escribe el texto aquí..."></textarea>
-            
-            <select id="langSelect" class="w-full px-4 py-3 bg-gray-900 border border-gray-600 rounded-xl outline-none focus:border-blue-500">
-                <optgroup label="Español" class="bg-gray-800">
-                    <option value="es-ES">🇪🇸 España (Peninsular)</option>
-                    <option value="es-MX">🇲🇽 México (Latinoamérica)</option>
-                    <option value="es-US">🇺🇸 EE.UU. (Neutro)</option>
-                    <option value="es-AR">🇦🇷 Argentina</option>
-                    <option value="es-CL">🇨🇱 Chile</option>
-                    <option value="es-CO">🇨🇴 Colombia</option>
-                    <option value="es-PE">🇵🇪 Perú</option>
-                </optgroup>
-                <optgroup label="Inglés" class="bg-gray-800">
-                    <option value="en-US">🇺🇸 EE.UU. (General)</option>
-                    <option value="en-GB">🇬🇧 Reino Unido (Británico)</option>
-                    <option value="en-AU">🇦🇺 Australia</option>
-                    <option value="en-CA">🇨🇦 Canadá</option>
-                    <option value="en-IN">🇮🇳 India</option>
-                </optgroup>
-            </select>
+    <div class="bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-700">
+        <div class="flex items-center justify-center gap-3 mb-6">
+            <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+            <h1 class="text-3xl font-bold text-blue-400">Estudio de Audio MP3</h1>
+        </div>
 
-            <div class="grid grid-cols-2 gap-2">
-                <button id="btnPlay" class="bg-green-700 hover:bg-green-600 text-white font-bold py-3 rounded-xl transition-all">
-                    🔊 Probar Voz
-                </button>
-                <button id="btnDownload" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all">
-                    ⬇️ Descargar MP3
-                </button>
-            </div>
-
-            <button id="btnTestBackend" class="w-full bg-purple-700 hover:bg-purple-600 text-white text-sm py-2 rounded-xl transition-all">
-                🔄 Verificar/Despertar Servidor
+        <div class="flex bg-gray-900 rounded-xl p-1 mb-6 border border-gray-700">
+            <button id="tabText" class="flex-1 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white transition-all">
+                📝 Texto a Voz (Google)
+            </button>
+            <button id="tabUpload" class="flex-1 py-2 text-sm font-semibold rounded-lg text-gray-400 hover:text-white transition-all">
+                📁 Subir Archivo Propio
             </button>
         </div>
 
-        <div id="alertBox" class="hidden mt-4 p-3 rounded-lg text-center text-sm border"></div>
+        <div class="space-y-6">
+            <div id="panelText" class="block space-y-4">
+                <div class="relative">
+                    <label class="block text-sm font-semibold mb-2 text-gray-300">Texto a procesar:</label>
+                    <textarea id="textInput" rows="3" 
+                        class="w-full px-4 py-3 bg-gray-900 border border-gray-600 rounded-xl focus:outline-none focus:border-blue-500 text-white placeholder-gray-500 resize-none transition-colors" 
+                        placeholder="Escribe el texto que quieras transformar en audio..."></textarea>
+                    <div class="absolute bottom-3 right-4 text-xs font-mono text-gray-500">
+                        <span id="currentChars">0</span> / 200
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-gray-300">Región / Voz de Google:</label>
+                    <select id="langSelect" class="w-full px-4 py-3 bg-gray-900 border border-gray-600 rounded-xl text-white outline-none focus:border-blue-500">
+                        <optgroup label="Español" class="bg-gray-800 text-blue-400">
+                            <option value="es-ES">🇪🇸 España (Peninsular)</option>
+                            <option value="es-MX">🇲🇽 México (Latinoamérica)</option>
+                            <option value="es-US">🇺🇸 EE.UU. (Neutro)</option>
+                            <option value="es-AR">🇦🇷 Argentina</option>
+                            <option value="es-CL">🇨🇱 Chile</option>
+                            <option value="es-CO">🇨🇴 Colombia</option>
+                        </optgroup>
+                        <optgroup label="Inglés" class="bg-gray-800 text-blue-400">
+                            <option value="en-US">🇺🇸 EE.UU. (General)</option>
+                            <option value="en-GB">🇬🇧 Reino Unido (Británico)</option>
+                            <option value="en-AU">🇦🇺 Australia</option>
+                        </optgroup>
+                    </select>
+                </div>
+            </div>
+
+            <div id="panelUpload" class="hidden">
+                <label class="block text-sm font-semibold mb-2 text-gray-300">Selecciona un archivo de audio desde tu equipo:</label>
+                <div class="flex items-center justify-center w-full">
+                    <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-600 border-dashed rounded-xl cursor-pointer bg-gray-900 hover:bg-gray-900/50 transition-colors">
+                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                            <svg class="w-8 h-8 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                            <p class="text-sm text-gray-400" id="uploadLabel">Haga clic para subir un archivo (MP3, WAV, etc.)</p>
+                        </div>
+                        <input id="fileInput" type="file" accept="audio/*" class="hidden" />
+                    </label>
+                </div>
+            </div>
+
+            <div class="bg-gray-900/60 p-5 rounded-xl border border-gray-700 space-y-4">
+                <h3 class="text-md font-bold text-blue-300 flex items-center gap-2">
+                    🛠️ Modificadores Inteligentes de Sonido
+                </h3>
+                
+                <div>
+                    <label class="block text-xs font-semibold mb-2 text-gray-400">Perfil predefinido (Preset):</label>
+                    <select id="presetSelect" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white text-sm">
+                        <option value="plano">🎚️ Plano (Audio original sin cambios)</option>
+                        <option value="locutor">🎙️ Locutor Potente (Graves inflados y con cuerpo)</option>
+                        <option value="clara">✨ Voz Nítida y Clara (Agudos brillantes, ideal ruidos)</option>
+                        <option value="radio">📻 Radio Antigua (Tinny AM, sin graves)</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 text-xs">
+                    <div>
+                        <div class="flex justify-between mb-1 text-gray-400">
+                            <span>Graves (Bass)</span>
+                            <span id="bassVal" class="font-mono">0 dB</span>
+                        </div>
+                        <input type="range" id="sliderBass" min="-20" max="20" value="0" class="w-full accent-blue-500">
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1 text-gray-400">
+                            <span>Agudos (Treble)</span>
+                            <span id="trebleVal" class="font-mono">0 dB</span>
+                        </div>
+                        <input type="range" id="sliderTreble" min="-20" max="20" value="0" class="w-full accent-blue-500">
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1 text-gray-400">
+                            <span>Volumen Final</span>
+                            <span id="volumeVal" class="font-mono">100%</span>
+                        </div>
+                        <input type="range" id="sliderVolume" min="0" max="200" value="100" class="w-full accent-blue-500">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                <button id="btnPlay" class="flex-1 bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg active:scale-95">
+                    🔊 Escuchar Prueba
+                </button>
+                <button id="btnStop" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-4 rounded-xl transition-all active:scale-95">
+                    ⏹️ Parar
+                </button>
+                <button id="btnDownload" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg active:scale-95">
+                    💾 Descargar MP3 Ecualizado
+                </button>
+            </div>
+
+            <div id="alertBox" class="hidden rounded-lg p-4 text-sm font-medium text-center border"></div>
+
+            <div class="pt-2">
+                <button id="btnTestBackend" class="w-full bg-gray-700/50 hover:bg-gray-700 border border-gray-600 text-gray-300 text-xs py-2 rounded-xl transition-all">
+                    🔄 Verificar / Despertar Estado del Servidor
+                </button>
+            </div>
+        </div>
     </div>
 
     <script>
+        // Elementos de la interfaz
+        const tabText = document.getElementById('tabText');
+        const tabUpload = document.getElementById('tabUpload');
+        const panelText = document.getElementById('panelText');
+        const panelUpload = document.getElementById('panelUpload');
+        
         const textInput = document.getElementById('textInput');
+        const currentChars = document.getElementById('currentChars');
         const langSelect = document.getElementById('langSelect');
-        const btnDownload = document.getElementById('btnDownload');
+        const fileInput = document.getElementById('fileInput');
+        const uploadLabel = document.getElementById('uploadLabel');
+        
+        const presetSelect = document.getElementById('presetSelect');
+        const sliderBass = document.getElementById('sliderBass');
+        const sliderTreble = document.getElementById('sliderTreble');
+        const sliderVolume = document.getElementById('sliderVolume');
+        const bassVal = document.getElementById('bassVal');
+        const trebleVal = document.getElementById('trebleVal');
+        const volumeVal = document.getElementById('volumeVal');
+
         const btnPlay = document.getElementById('btnPlay');
+        const btnStop = document.getElementById('btnStop');
+        const btnDownload = document.getElementById('btnDownload');
         const btnTestBackend = document.getElementById('btnTestBackend');
         const alertBox = document.getElementById('alertBox');
-        
-        const BASE_SERVER_URL = 'https://audiodw.onrender.com';
 
-        // 1. PROBAR VOZ (Nativa)
-        btnPlay.addEventListener('click', () => {
-            const text = textInput.value.trim();
-            if (!text) return showAlert('Escribe algo primero.', 'bg-red-900/50 border-red-800 text-red-300');
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            window.speechSynthesis.speak(utterance);
+        // Configuración de la dirección fija de Render
+        const BASE_SERVER_URL = 'https://audiodw.onrender.com';
+        
+        let modoActual = 'texto'; // 'texto' o 'subir'
+        let nodoReproduccionActivo = null;
+        let contextoAudioNativo = null;
+        let archivoCargadoBuffer = null;
+
+        // --- Gestión de Pestañas (Tabs) ---
+        tabText.addEventListener('click', () => {
+            modoActual = 'texto';
+            tabText.className = "flex-1 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white transition-all";
+            tabUpload.className = "flex-1 py-2 text-sm font-semibold rounded-lg text-gray-400 hover:text-white transition-all";
+            panelText.classList.remove('hidden');
+            panelUpload.classList.add('hidden');
+            detenerAudioNativo();
         });
 
-        // 2. DESCARGAR MP3 (Proxy)
-        btnDownload.addEventListener('click', async () => {
-            const texto = textInput.value.trim();
-            if (!texto) return showAlert('Por favor, escribe algo.', 'bg-red-900/50 border-red-800 text-red-300');
+        tabUpload.addEventListener('click', () => {
+            modoActual = 'subir';
+            tabUpload.className = "flex-1 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white transition-all";
+            tabText.className = "flex-1 py-2 text-sm font-semibold rounded-lg text-gray-400 hover:text-white transition-all";
+            panelUpload.classList.remove('hidden');
+            panelText.classList.add('hidden');
+            detenerAudioNativo();
+        });
 
-            btnDownload.textContent = 'Procesando...';
-            btnDownload.disabled = true;
+        // --- Lector de archivos subidos ---
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            uploadLabel.textContent = `Archivo cargado: ${file.name}`;
+            
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                try {
+                    if (!contextoAudioNativo) contextoAudioNativo = new (window.AudioContext || window.webkitAudioContext)();
+                    archivoCargadoBuffer = await contextoAudioNativo.decodeAudioData(event.target.result);
+                    showAlert('Archivo de audio decodificado correctamente en memoria.', 'success');
+                } catch (err) {
+                    console.error(err);
+                    showAlert('Error al decodificar este archivo de audio. Prueba con otro formato.', 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
 
-            try {
+        // --- Contador de caracteres para texto ---
+        textInput.addEventListener('input', (e) => {
+            const len = e.target.value.length;
+            currentChars.textContent = len;
+            if (len > 200) {
+                currentChars.className = "text-red-400";
+                textInput.classList.replace('border-gray-600', 'border-red-500');
+            } else {
+                currentChars.className = "text-gray-400";
+                textInput.classList.replace('border-red-500', 'border-gray-600');
+            }
+        });
+
+        // --- Lógica de Selectores Inteligentes (Presets) ---
+        const diccionarioPresets = {
+            plano: { bass: 0, treble: 0, volume: 100 },
+            locutor: { bass: 15, treble: 4, volume: 120 },
+            clara: { bass: -6, treble: 14, volume: 100 },
+            radio: { bass: -15, treble: 10, volume: 90 }
+        };
+
+        presetSelect.addEventListener('change', (e) => {
+            const config = diccionarioPresets[e.target.value];
+            if (config) {
+                sliderBass.value = config.bass;
+                sliderTreble.value = config.treble;
+                sliderVolume.value = config.volume;
+                actualizarVisualizacionSliders();
+            }
+        });
+
+        function actualizarVisualizacionSliders() {
+            bassVal.textContent = `${sliderBass.value} dB`;
+            trebleVal.textContent = `${sliderTreble.value} dB`;
+            volumeVal.textContent = `${sliderVolume.value}%`;
+        }
+
+        sliderBass.addEventListener('input', () => { presetSelect.value = 'personalizado'; actualizarVisualizacionSliders(); });
+        sliderTreble.addEventListener('input', () => { presetSelect.value = 'personalizado'; actualizarVisualizacionSliders(); });
+        sliderVolume.addEventListener('input', () => { presetSelect.value = 'personalizado'; actualizarVisualizacionSliders(); });
+        actualizarVisualizacionSliders();
+
+        // --- Alertas visuales ---
+        function showAlert(msg, type = 'error') {
+            alertBox.textContent = msg;
+            alertBox.className = `mt-4 p-3 rounded-lg text-center text-sm border block ${type === 'error' ? 'bg-red-900/50 border-red-800 text-red-300' : type === 'success' ? 'bg-green-900/50 border-green-800 text-green-300' : 'bg-yellow-900/50 border-yellow-800 text-yellow-300'}`;
+            if (type !== 'process') setTimeout(() => alertBox.classList.add('hidden'), 5000);
+        }
+
+        // --- Obtener origen de audio crudo (AudioBuffer) ---
+        async function obtenerAudioBufferBase() {
+            if (modoActual === 'subir') {
+                if (!archivoCargadoBuffer) throw new Error('Por favor, selecciona primero un archivo de audio válido.');
+                return archivoCargadoBuffer;
+            } else {
+                const texto = textInput.value.trim();
+                if (!texto) throw new Error('Por favor, ingresa el texto que deseas procesar.');
+                if (texto.length > 200) throw new Error('El límite máximo para el texto gratuito es de 200 caracteres.');
+                
+                showAlert('Conectando al servidor y obteniendo audio base...', 'process');
+                
                 const response = await fetch(`${BASE_SERVER_URL}/api/generar-mp3`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ texto, idioma: langSelect.value })
                 });
 
-                if (!response.ok) throw new Error('Servidor durmiendo');
+                if (!response.ok) throw new Error('El servidor de Render falló o sigue encendiéndose.');
 
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `audio_${langSelect.value}_${Date.now()}.mp3`;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                showAlert('¡Descarga completada!', 'bg-green-900/50 border-green-800 text-green-300');
-            } catch (err) {
-                showAlert('El servidor está despertando, espera 30 seg.', 'bg-yellow-900/50 border-yellow-800 text-yellow-300');
-            } finally {
-                btnDownload.textContent = 'Descargar MP3';
-                btnDownload.disabled = false;
+                const arrayBuffer = await response.arrayBuffer();
+                if (!contextoAudioNativo) contextoAudioNativo = new (window.AudioContext || window.webkitAudioContext)();
+                return await contextoAudioNativo.decodeAudioData(arrayBuffer);
             }
-        });
-
-        // 3. WAKE SERVER
-        btnTestBackend.addEventListener('click', async () => {
-            alertBox.textContent = "Despertando servidor...";
-            alertBox.className = "mt-4 p-3 rounded-lg text-center text-sm border bg-purple-900/50 border-purple-800 text-purple-300";
-            alertBox.classList.remove('hidden');
-            try {
-                await fetch(`${BASE_SERVER_URL}/api/estado`);
-                showAlert('¡Servidor activo!', 'bg-green-900/50 border-green-800 text-green-300');
-            } catch {
-                showAlert('Error: Revisa la conexión.', 'bg-red-900/50 border-red-800 text-red-300');
-            }
-        });
-
-        function showAlert(msg, style) {
-            alertBox.textContent = msg;
-            alertBox.className = `mt-4 p-3 rounded-lg text-center text-sm border ${style}`;
-            alertBox.classList.remove('hidden');
-            setTimeout(() => alertBox.classList.add('hidden'), 4000);
         }
+
+        // --- Control de Reproducción Local Ecualizada ---
+        btnPlay.addEventListener('click', async () => {
+            try {
+                detenerAudioNativo();
+                const bufferBase = await obtenerAudioBufferBase();
+                showAlert('Procesando efectos en vivo...', 'process');
+
+                if (!contextoAudioNativo) contextoAudioNativo = new (window.AudioContext || window.webkitAudioContext)();
+                
+                nodoReproduccionActivo = contextoAudioNativo.createBufferSource();
+                nodoReproduccionActivo.buffer = bufferBase;
+
+                // Crear filtros dinámicos basados en la ecualización inteligente
+                const filtroGraves = contextoAudioNativo.createBiquadFilter();
+                filtroGraves.type = "lowshelf";
+                filtroGraves.frequency.value = 200;
+                filtroGraves.gain.value = parseFloat(sliderBass.value);
+
+                const filtroAgudos = contextoAudioNativo.createBiquadFilter();
+                filtroAgudos.type = "highshelf";
+                filtroAgudos.frequency.value = 3000;
+                filtroAgudos.gain.value = parseFloat(sliderTreble.value);
+
+                const nodoGanancia = contextoAudioNativo.createGain();
+                nodoGanancia.gain.value = parseFloat(sliderVolume.value) / 100;
+
+                // Cadena física: Fuente -> Graves -> Agudos -> Volumen -> Altavoces
+                nodoReproduccionActivo.connect(filtroGraves);
+                filtroGraves.connect(filtroAgudos);
+                filtroAgudos.connect(nodoGanancia);
+                nodoGanancia.connect(contextoAudioNativo.destination);
+
+                nodoReproduccionActivo.start(0);
+                showAlert('Escuchando previsualización con ecualización aplicada.', 'success');
+            } catch (err) {
+                console.error(err);
+                showAlert(err.message, 'error');
+            }
+        });
+
+        function detenerAudioNativo() {
+            if (nodoReproduccionActivo) {
+                try { nodoReproduccionActivo.stop(); } catch(e){}
+                nodoReproduccionActivo = null;
+            }
+        }
+        btnStop.addEventListener('click', detenerAudioNativo);
+
+        // --- Renderizado Offline y Codificación a MP3 NATIVO Real ---
+        btnDownload.addEventListener('click', async () => {
+            try {
+                detenerAudioNativo();
+                const bufferBase = await obtenerAudioBufferBase();
+                
+                showAlert('⚙️ Renderizando ecualización a máxima velocidad...', 'process');
+
+                // Crear contexto offline rápido que computa el audio sin reproducirlo sonoramente
+                const offlineCtx = new OfflineAudioContext(
+                    bufferBase.numberOfChannels,
+                    bufferBase.length,
+                    bufferBase.sampleRate
+                );
+
+                const fuenteOffline = offlineCtx.createBufferSource();
+                fuenteOffline.buffer = bufferBase;
+
+                const filtroGravesOffline = offlineCtx.createBiquadFilter();
+                filtroGravesOffline.type = "lowshelf";
+                filtroGravesOffline.frequency.value = 200;
+                filtroGravesOffline.gain.value = parseFloat(sliderBass.value);
+
+                const filtroAgudosOffline = offlineCtx.createBiquadFilter();
+                filtroAgudosOffline.type = "highshelf";
+                filtroAgudosOffline.frequency.value = 3000;
+                filtroAgudosOffline.gain.value = parseFloat(sliderTreble.value);
+
+                const nodoGananciaOffline = offlineCtx.createGain();
+                nodoGananciaOffline.gain.value = parseFloat(sliderVolume.value) / 100;
+
+                fuenteOffline.connect(filtroGravesOffline);
+                filtroGravesOffline.connect(filtroAgudosOffline);
+                filtroAgudosOffline.connect(nodoGananciaOffline);
+                nodoGananciaOffline.connect(offlineCtx.destination);
+
+                fuenteOffline.start(0);
+                
+                // Audio procesado y masterizado en memoria limpia
+                const bufferRenderizado = await offlineCtx.startRendering();
+
+                showAlert('⚡ Convirtiendo y comprimiendo audio a MP3 real...', 'process');
+                
+                // Compilar a MP3 usando la librería nativa Lamejs
+                const blobMP3 = codificarBufferAMP3(bufferRenderizado);
+                
+                // Disparar descarga directa en el navegador
+                const urlDescarga = window.URL.createObjectURL(blobMP3);
+                const elementoLink = document.createElement('a');
+                elementoLink.href = urlDescarga;
+                elementoLink.download = `AudioEstudio_${Date.now()}.mp3`;
+                document.body.appendChild(elementoLink);
+                elementoLink.click();
+                elementoLink.remove();
+                window.URL.revokeObjectURL(urlDescarga);
+
+                showAlert('¡Archivo MP3 ecualizado descargado de manera exitosa!', 'success');
+            } catch (err) {
+                console.error(err);
+                showAlert(err.message, 'error');
+            }
+        });
+
+        // --- Algoritmo de codificación Float32 a Int16 PCM para MP3 ---
+        function codificarBufferAMP3(audioBuffer) {
+            const canales = audioBuffer.numberOfChannels;
+            const tazaMuestreo = audioBuffer.sampleRate;
+            
+            // Inicializar el codificador LameJS a un bitrate estándar de 128kbps
+            const encoderMp3 = new lamejs.Mp3Encoder(canales, tazaMuestreo, 128);
+            const fragmentosMp3 = [];
+            const tamañoBloque = 1152;
+
+            if (canales === 1) {
+                const datosFlotantes = audioBuffer.getChannelData(0);
+                const pcmInt16 = new Int16Array(datosFlotantes.length);
+                // Convertir muestras de audio (-1.0 / 1.0) a formato Int16 válido
+                for (let i = 0; i < datosFlotantes.length; i++) {
+                    let muestra = Math.max(-1, Math.min(1, datosFlotantes[i]));
+                    pcmInt16[i] = muestra < 0 ? muestra * 0x8000 : muestra * 0x7FFF;
+                }
+                for (let i = 0; i < pcmInt16.length; i += tamañoBloque) {
+                    let bloque = pcmInt16.subarray(i, i + tamañoBloque);
+                    let mp3buf = encoderMp3.encodeBuffer(bloque);
+                    if (mp3buf.length > 0) fragmentosMp3.push(mp3buf);
+                }
+            } else {
+                // Audio estéreo (Común en archivos subidos por el usuario)
+                const flotantesIzquierda = audioBuffer.getChannelData(0);
+                const flotantesDerecha = audioBuffer.getChannelData(1);
+                const pcmIzquierda = new Int16Array(flotantesIzquierda.length);
+                const pcmDerecha = new Int16Array(flotantesDerecha.length);
+
+                for (let i = 0; i < flotantesIzquierda.length; i++) {
+                    let muestraI = Math.max(-1, Math.min(1, flotantesIzquierda[i]));
+                    pcmIzquierda[i] = muestraI < 0 ? muestraI * 0x8000 : muestraI * 0x7FFF;
+                    let muestraD = Math.max(-1, Math.min(1, flotantesDerecha[i]));
+                    pcmDerecha[i] = muestraD < 0 ? muestraD * 0x8000 : muestraD * 0x7FFF;
+                }
+                for (let i = 0; i < pcmIzquierda.length; i += tamañoBloque) {
+                    let bloqueI = pcmIzquierda.subarray(i, i + tamañoBloque);
+                    let bloqueD = pcmDerecha.subarray(i, i + tamañoBloque);
+                    let mp3buf = encoderMp3.encodeBuffer(bloqueI, bloqueD);
+                    if (mp3buf.length > 0) fragmentosMp3.push(mp3buf);
+                }
+            }
+
+            const flujoFinal = encoderMp3.flush();
+            if (fluxFinal.length > 0) fragmentosMp3.push(flujoFinal);
+
+            return new Blob(fragmentosMp3, { type: 'audio/mp3' });
+        }
+
+        // --- Verificación/Despertador manual de salud de Render ---
+        btnTestBackend.addEventListener('click', async () => {
+            showAlert('Enviando señal de verificación... (Espera hasta 50s si está inactivo)', 'process');
+            try {
+                const response = await fetch(`${BASE_SERVER_URL}/api/estado`);
+                if (!response.ok) throw new Error();
+                const data = await response.json();
+                showAlert(`✅ Servidor en línea: ${data.mensaje}`, 'success');
+            } catch {
+                showAlert('❌ No se pudo conectar al servidor. Revisa el estado de tu Web Service en Render.', 'error');
+            }
+        });
     </script>
 </body>
 </html>
